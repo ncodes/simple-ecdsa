@@ -22,6 +22,10 @@ var _asn = require('asn1.js');
 
 var _asn2 = _interopRequireDefault(_asn);
 
+var _bn = require('bn.js');
+
+var _bn2 = _interopRequireDefault(_bn);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -92,8 +96,8 @@ var SimpleECDSA = function () {
         value: function getPubKey() {
             var pub = this.key.getPublic();
             var output = PubKeyAsn1.encode({
-                x: pub.getX().toJSON(),
-                y: pub.getY().toJSON()
+                x: pub.getX().toString(10),
+                y: pub.getY().toString(10)
             }, "der");
             return output.toString('hex');
         }
@@ -107,7 +111,7 @@ var SimpleECDSA = function () {
         key: 'getPrivKey',
         value: function getPrivKey() {
             var output = PrivKeyAsn1.encode({
-                d: this.key.priv.toJSON()
+                d: this.key.priv.toString(10)
             }, "der");
             return output.toString('hex');
         }
@@ -124,8 +128,8 @@ var SimpleECDSA = function () {
         value: function sign(msg) {
             var sig = this.key.sign(msg);
             var output = SigAsn1.encode({
-                r: sig.r.toJSON(),
-                s: sig.s.toJSON()
+                r: sig.r.toString(10),
+                s: sig.s.toString(10)
             }, "der");
             return output.toString("hex");
         }
@@ -145,7 +149,10 @@ var SimpleECDSA = function () {
         value: function verify(pubKey, curveName, msg, sig) {
             var sigFromDer = SigAsn1.decode(new Buffer(sig, "hex"), "der");
             var key = SimpleECDSA.loadFromPubKey(pubKey, curveName).key;
-            return key.verify(msg, sigFromDer);
+            return key.verify(msg, {
+                r: new _bn2.default(sigFromDer.r, 10).toJSON(),
+                s: new _bn2.default(sigFromDer.s, 10).toJSON()
+            });
         }
 
         /**
@@ -160,7 +167,7 @@ var SimpleECDSA = function () {
         key: 'loadFromPrivKey',
         value: function loadFromPrivKey(privKey, curveName) {
             var privKeyFromDer = PrivKeyAsn1.decode(new Buffer(privKey, "hex"), "der");
-            var key = new EC(CurveP256).keyFromPrivate(privKeyFromDer.d, "hex");
+            var key = new EC(CurveP256).keyFromPrivate(new _bn2.default(privKeyFromDer.d, 10).toJSON(), "hex");
             var se = new SimpleECDSA(curveName);
             se.key = key;
             return se;
@@ -179,8 +186,8 @@ var SimpleECDSA = function () {
         value: function loadFromPubKey(pubKey, curveName) {
             var pubKeyFromDer = PubKeyAsn1.decode(new Buffer(pubKey, "hex"), "der");
             var key = new EC(CurveP256).keyFromPublic({
-                x: pubKeyFromDer.x,
-                y: pubKeyFromDer.y
+                x: new _bn2.default(pubKeyFromDer.x, 10).toJSON(),
+                y: new _bn2.default(pubKeyFromDer.y, 10).toJSON()
             }, "hex");
             var se = new SimpleECDSA(curveName);
             se.key = key;
@@ -199,7 +206,7 @@ var SimpleECDSA = function () {
         key: 'isValidPubKey',
         value: function isValidPubKey(pubKey) {
             try {
-                var pubKeyFromDer = PubKeyAsn1.decode(new Buffer(pubKey, "hex"), "der");
+                var se = SimpleECDSA.loadFromPubKey(pubKey);
                 return true;
             } catch (e) {
                 return false;

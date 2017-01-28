@@ -20,8 +20,8 @@ console.log(verified)
 # Other methods
 SimpleECDSA.genKey()                // refresh the internal key in SimpleECDSA instance
 SimpleECDSA.getPrivKey()            // get the private key
-SimpleECDSA.loadFromPubKey(key)     // import a DER-ASN.1->Hex encode public key
-SimpleECDSA.loadFromPrivKey(key)    // import a DER-ASN.1->Hex encode private key
-SimpleECDSA.isValidPubKey(key)      // Check the whether a public key is decodable.
+SimpleECDSA.loadFromPubKey(key, CurveP265)     // import a DER-ASN.1->Hex encode public key
+SimpleECDSA.loadFromPrivKey(key, CurveP265)    // import a DER-ASN.1->Hex encode private key
+SimpleECDSA.isValidPubKey(key)      // Check whether a public key can be decoded to a CurveP265 public key.
 ```
 

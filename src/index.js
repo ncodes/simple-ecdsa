@@ -4,6 +4,7 @@
 import elliptic from 'elliptic';
 import util from 'util'
 import asn1js from 'asn1.js'
+import BN from 'bn.js'
 
 let EC = elliptic.ec
 
@@ -70,8 +71,8 @@ export default class SimpleECDSA {
     getPubKey() {
         let pub = this.key.getPublic()
         var output = PubKeyAsn1.encode({
-            x: pub.getX().toJSON(),
-            y: pub.getY().toJSON()
+            x: pub.getX().toString(10),
+            y: pub.getY().toString(10)
         }, "der")
         return output.toString('hex')
     }
@@ -82,7 +83,7 @@ export default class SimpleECDSA {
      */
     getPrivKey() {
         var output = PrivKeyAsn1.encode({
-            d: this.key.priv.toJSON(),
+            d: this.key.priv.toString(10),
         }, "der")
         return output.toString('hex')
     }
@@ -96,8 +97,8 @@ export default class SimpleECDSA {
     sign(msg) {
         let sig = this.key.sign(msg)
         var output = SigAsn1.encode({
-            r: sig.r.toJSON(),
-            s: sig.s.toJSON()
+            r: sig.r.toString(10),
+            s: sig.s.toString(10),
         }, "der")
         return output.toString("hex")
     }
@@ -114,7 +115,10 @@ export default class SimpleECDSA {
     static verify(pubKey, curveName, msg, sig) {
         let sigFromDer = SigAsn1.decode(new Buffer(sig, "hex"), "der")
         let key = SimpleECDSA.loadFromPubKey(pubKey, curveName).key
-        return key.verify(msg, sigFromDer)        
+        return key.verify(msg, {
+            r: new BN(sigFromDer.r, 10).toJSON(),
+            s: new BN(sigFromDer.s, 10).toJSON()
+        })        
     }
     
     /**
@@ -126,7 +130,7 @@ export default class SimpleECDSA {
      */
     static loadFromPrivKey(privKey, curveName) {
         let privKeyFromDer = PrivKeyAsn1.decode(new Buffer(privKey, "hex"), "der")
-        let key = new EC(CurveP256).keyFromPrivate(privKeyFromDer.d, "hex")
+        let key = new EC(CurveP256).keyFromPrivate(new BN(privKeyFromDer.d, 10).toJSON(), "hex")
         let se = new SimpleECDSA(curveName)
         se.key = key
         return se
@@ -142,8 +146,8 @@ export default class SimpleECDSA {
     static loadFromPubKey(pubKey, curveName) {
         let pubKeyFromDer = PubKeyAsn1.decode(new Buffer(pubKey, "hex"), "der")
         let key = new EC(CurveP256).keyFromPublic({
-            x: pubKeyFromDer.x, 
-            y: pubKeyFromDer.y 
+            x: new BN(pubKeyFromDer.x, 10).toJSON(), 
+            y: new BN(pubKeyFromDer.y, 10).toJSON()
         }, "hex")
         let se = new SimpleECDSA(curveName)
         se.key = key
@@ -159,7 +163,7 @@ export default class SimpleECDSA {
      */
     static isValidPubKey(pubKey) {
         try {
-            let pubKeyFromDer = PubKeyAsn1.decode(new Buffer(pubKey, "hex"), "der")
+            let se = SimpleECDSA.loadFromPubKey(pubKey)
             return true
         } catch(e) {
             return false
