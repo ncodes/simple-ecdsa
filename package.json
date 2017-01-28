@@ -1,0 +1,22 @@
+{
+  "name": "simple-ecdsa",
+  "version": "0.0.3",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "asn1.js": "^4.9.1",
+    "elliptic": "^6.3.2"
+  },
+  "devDependencies": {
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-es2016": "^6.16.0",
+    "babel-preset-es2017": "^6.16.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "babel ./src/index.js --out-file index.js",
+    "compile-run": "babel ./src/index.js --out-file index.js & node index.js"
+  },
+  "author": "Kennedy Idialu <kennedyidialu@gmail.com> (ncodes.wordpress.com)",
+  "license": "ISC"
+}
